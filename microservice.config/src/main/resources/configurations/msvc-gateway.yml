@@ -11,15 +11,15 @@ spring:
           enabled: true
       routes:
         - id: clientes
-          uri: http://localhost:9091
+          uri: http://msvc-clientperson:9091
           predicates:
             - Path=/api/clientes/**
         - id: cuentas
-          uri: http://localhost:9092
+          uri: http://msvc-movimientos:9092
           predicates:
             - Path=/api/cuentas/**
         - id: movimientos
-          uri: http://localhost:9092
+          uri: http://msvc-movimientos:9092
           predicates:
             - Path=/api/movimientos/**
 

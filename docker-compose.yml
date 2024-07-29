@@ -1,0 +1,90 @@
+version: "3.7"
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: mysql_db
+    environment:
+      MYSQL_ROOT_PASSWORD: my-weak-password
+      MYSQL_DATABASE: clientDb
+    ports:
+      - "3307:3306"
+    volumes:
+      - ./BaseDeDatos.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - mynetwork
+
+  msvc-config:
+    image: msvc-config
+    build:
+      context: ./microservice.config
+      dockerfile: Dockerfile
+    container_name: msvc-config
+    ports:
+      - "8888:8888"
+    environment:
+      - SPRING_PROFILES_ACTIVE=native
+    networks:
+      - mynetwork
+
+  msvc-eureka:
+    image: msvc-eureka
+    build:
+      context: ./microservice.eureka
+      dockerfile: Dockerfile
+    container_name: msvc-eureka
+    depends_on:
+      - msvc-config
+    ports:
+      - "8761:8761"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    networks:
+      - mynetwork
+
+  msvc-movimientos:
+    image: msvc-movimientos
+    build:
+      context: ./microservice.movimientos
+      dockerfile: Dockerfile
+    container_name: msvc-movimientos
+    depends_on:
+      - msvc-config
+      - mysql
+    ports:
+      - "9092:9092"
+    networks:
+      - mynetwork
+
+  msvc-clientperson:
+    image: msvc-clientperson
+    build:
+      context: ./microservice.clientperson
+      dockerfile: Dockerfile
+    container_name: msvc-clientperson
+    depends_on:
+      - msvc-config
+      - mysql
+    ports:
+      - "9091:9091"
+    networks:
+      - mynetwork
+
+  msvc-gateway:
+    image: msvc-gateway
+    build:
+      context: ./microservice.gateway
+      dockerfile: Dockerfile
+    container_name: msvc-gateway
+    depends_on:
+      - msvc-clientperson
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    networks:
+      - mynetwork
+
+networks:
+  mynetwork:
+    driver: bridge
